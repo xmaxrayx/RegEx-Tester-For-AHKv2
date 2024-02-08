@@ -28,12 +28,12 @@ F1::{
 
 
 ;aboutGui(appVersion,appAuthor,appName,appLicense, )
-regexTesterMain("","")
+regexTesterMain("","",)
  
 
 
 
-regexTesterMain(text := "", regexText := "" ,textSize:= 10  ,copyClose:= 0 ,textBoxWidth := 500, regexHight := 25 , textHight := 25){
+regexTesterMain(text := "", regexText? ,textSize:= 10  ,copyClose:= 0 ,textBoxWidth := 500, regexHight := 25 , textHight := 25){
     ;this is normal lounch gui
     
     ;======for winactive
@@ -56,15 +56,46 @@ regexTesterMain(text := "", regexText := "" ,textSize:= 10  ,copyClose:= 0 ,text
     mainGUI := Gui("+LastFound AlwaysOnTop","RegexTester")
     ;mainGUI.Opt("+LastFound AlwaysOnTop")
     mainGUI.SetFont( textSize "cBlack")
+    
+    ;=============
+    ;========================================
+    ; we need it for doufoult cursur placment,this may sounds useless but wee need it     ;ok dont read this--->(removed maybe i will do smt about it in future)
+    ;=========
+    if (IsSet(regexText)) && (regexText !="") {  ;need the second one becouse ahk think "" is a value
+        ;need fix ;?
+        ;MsgBox 'have a value'
+               
+        
+        
+        ;===
+        mainGUI.Add("Text", "x10 y50  w50", "Text :")
+        Haystack_textBox := mainGUI.add("Edit" , "yp w" textBoxWidth " h" regexHight)
+        ;===    
+        mainGUI.Add("Text", "x10 y15  w50" , "Regex :")
+        Regex_textBox := mainGUI.add("Edit","yp w" textBoxWidth " h" regexHight)
+        
+
+     }
+     else{
+        ;MsgBox 'No setted'
+       
+        mainGUI.Add("Text", "xm y15 w50" , "Regex :")
+        Regex_textBox := mainGUI.add("Edit","yp w" textBoxWidth " h" regexHight)
+        
+        ;===
+        mainGUI.Add("Text", "  xm w50", "Text :")
+        Haystack_textBox := mainGUI.add("Edit" , "yp w" textBoxWidth " h" regexHight)
+
+        regexText := "" ;need this to fix the bug for not having value
+       
+     }
+    
+    
+    
+    
+    
     ;=====
-    mainGUI.Add("Text", "xm y15 w50" , "Regex :")
-    Regex_textBox := mainGUI.add("Edit","yp w" textBoxWidth " h" regexHight)
-    
-    
-    ;===
-    mainGUI.Add("Text", "  xm w50", "Text :")
-    Haystack_textBox := mainGUI.add("Edit" , "yp w" textBoxWidth " h" regexHight)
-   
+
 
     ;====
     mainGUI.add("Text","h20 xm   w50" , "Result :")
@@ -174,12 +205,7 @@ regexTesterMain(text := "", regexText := "" ,textSize:= 10  ,copyClose:= 0 ,text
     }
      
 
-    ;removed maybe i will do smt about it in future
-    ; if IsSet(regexText)  {
-        
-    ;     Haystack_textBox.Opt("")
-    ;     MsgBox
-    ; }
+
   
     mainGUI.Show()
     
@@ -208,7 +234,7 @@ regexTesterMain(text := "", regexText := "" ,textSize:= 10  ,copyClose:= 0 ,text
 
 
 
-aboutGui(title := A_ScriptName ,version := "", author := "" , appName := "" , license := "" , licenseText := "" , separateButton := 0 ,licensePath:= A_ScriptDir . "\LICENSE" , fullPictureMode:= 0){
+aboutGui(title := A_ScriptName ,version := "", author := "" , appName := "" , license := "" , licenseText := "" , separateButton := 0 ,licensePath:= A_ScriptDir . "\LICENSE" , fullPictureMode:= 0 ,picture := A_ScriptDir . "\Assists\about-picture.png" ,pr := 1){
 
     ;"C:\Users\Max_Laptop\Programming\Github\xMaxrayx_Github\RegEx-Tester-For-AHKv2\Assists\about-picture.png"
     aboutGui := Gui("AlwaysOnTop", "About: " appName)
@@ -217,13 +243,56 @@ aboutGui(title := A_ScriptName ,version := "", author := "" , appName := "" , li
     {
     if fullPictureMode == 1{
 
-        aboutGui.Add("Picture", , A_ScriptDir . "\Assists\about-picture.png") 
+        aboutGui.Add("Picture", , picture) 
     }
     else{
-        pictureHight := A_ScreenHeight*0.4
-        pictureWidth := A_ScreenWidth* 0.4
+        
+        screenWidth := 1200 ;A_ScreenWidth
+        screenHeight := 1200 ;A_ScreenHeight
+        pictureFile := getImageSize(picture)
+        
+        pictureRatio := pictureFile.width / pictureFile.height
+        screenRatio := screenWidth / screenHeight
+        
+       pr := 1
 
-        aboutGui.Add("Picture",'H' pictureHight ' W' pictureWidth, A_ScriptDir . "\Assists\about-picture.png") 
+        Def_Percent := (pictureRatio/screenRatio) *100
+        
+        ; pictureHight := (Def_Percent * pr * pictureFile.height) /100
+        ; pictureWidth := (Def_Percent * pr * pictureFile.width ) /100
+        
+        pictureHight := ((Def_Percent  * pictureFile.height)/100  )
+        pictureWidth := (( Def_Percent  * pictureFile.width)/100 )
+
+
+
+
+
+
+        ;===fix over hight above the screen
+        ; if pictureHight > A_ScreenHeight{
+        ;     pictureHight := A_ScreenHeight
+        ; }
+
+
+
+        getImageSize(imagePath){   ;this func under mit lincess ;https://github.com/Masonjar13/AHK-Library
+            splitPath imagePath,&fN,&fD
+        
+            oS:=ComObject("Shell.Application")
+            oF:=oS.namespace(fD?fD:a_workingDir)
+            oFn:=oF.parseName(fD?fN:imagePath)
+            size:=strSplit(oFn.extendedProperty("Dimensions"),"x"," ?" chr(8234) chr(8236))
+        
+            return {width: size[1],height: size[2]}
+        }
+
+
+
+
+
+
+        aboutGui.Add("Picture",'H' pictureHight ' W' pictureWidth, picture) 
 
         }
     aboutGui.Add("Text", "yp w230 h45" , appName).SetFont("s30 cBlack", "Calibri")
